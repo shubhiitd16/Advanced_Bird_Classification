@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Spot your bird</string>
+
+    <string-array name="Bird">
+        <item>alexandrine_parakeet</item>
+        <item>brahamini_myna</item>
+        <item>collared_dove</item>
+        <item>common_myna</item>
+        <item>hoopoe</item>
+        <item>house_crow</item>
+        <item>indian_peafowl</item>
+        <item>indian_robin</item>
+        <item>jungle_babbler</item>
+        <item>koel</item>
+        <item>red_vented_bulbul</item>
+        <item>red_whiskered_bulbul</item>
+        <item>rock_dove</item>
+        <item>rose-ringed_parakeet</item>
+        <item>tailor_bird</item>
+        <item>yellow_footed_pigeon</item>
+        <item>Brahminy_maina</item>
+        <item>Bulbul</item>
+        <item>Collared_dove</item>
+        <item>Common_myna</item>
+        <item>Common_sparrow</item>
+        <item>Coppersmith</item>
+        <item>Crow_pheasant</item>
+        <item>Drongo</item>
+        <item>Golden_backed_woodpecker</item>
+        <item>Green Barbet</item>
+        <item>Hoopoe</item>
+        <item>House_Crow</item>
+        <item>Indian_hornbill</item>
+        <item>Indian_robin</item>
+        <item>Jungle_Crow</item>
+        <item>Jungle_babbler</item>
+        <item>Koel</item>
+        <item>Little_green_beeeater</item>
+        <item>Magpie_robin</item>
+        <item>Owlet</item>
+        <item>Parakeet</item>
+        <item>Pariah_kite</item>
+        <item>Partridge</item>
+        <item>Peacock</item>
+        <item>Pied_myna</item>
+        <item>Pied_wagtail</item>
+        <item>Pigeon</item>
+        <item>Pond_heron</item>
+        <item>Red_wattled_lapwing</item>
+        <item>Rufous_backed_shrike</item>
+        <item>Shikra</item>
+        <item>Sunbird</item>
+        <item>Tailor_bird</item>
+        <item>White_breasted_kingfisher</item>
+        <item>White_breasted_water_hen</item>
+
+    </string-array>
+</resources>
