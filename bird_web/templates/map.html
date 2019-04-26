@@ -1,0 +1,143 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- CSS: Bootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css" />
+
+    <title>COL 362/632 - Project 1 - Demo Flask App</title>
+
+    <style>
+        .container {
+            width: auto;
+            /* max-width: 680px; */
+            padding: 0 15px;
+        }
+
+        .footer {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+
+ <script>
+var x = document.getElementById("demo");
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+  } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+  }
+}
+
+function showPosition(position) {
+  var test = "Hello";
+document.getElementById("mytext").value = test;
+  x.innerHTML = "Latitude: " + position.coords.latitude + 
+  "<br>Longitude: " + position.coords.longitude;
+  var latitude= position.coords.latitude;
+  document.getElementById("mytext").value = latitude;
+  var longitude=position.coords.longitude;
+  document.getElementById("mytext1").value = longitude;
+  return latitude,longitude
+}
+</script>
+
+<body class="d-flex flex-column h-100"  >
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+            aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="http://10.17.10.77:3000/">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://10.17.10.77:3000/detected">Detected</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://10.17.10.77:3000/map">Map</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">Dropdown</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown01">
+                        <a class="dropdown-item" href="#">Action</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Begin page content -->
+    <main role="main" class="flex-shrink-0">
+
+        <!-- Main jumbotron for a primary marketing message or call to action -->
+        <div class="jumbotron">
+            <div class="container">
+                <h1 class="display-4">Advanced Bird Classification</h1>
+                <p style="margin-top: 25px;">
+                    Model Architecture: Resnet 50
+                    Model Accuracy: 0.90
+                </p>
+            </div>
+        </div>
+
+
+ <div class="row" align="center">
+ 
+ <div class="large-2 columns">&nbsp;</div>
+  <div class="column">
+
+<iframe width="425" height="350" frameborder="0" scrolling="no" 
+marginheight="0" marginwidth="0" 
+src="https://www.openstreetmap.org/export/embed.html?bbox={{Long1}}%2C{{Lat1}}%2C{{Long2}}%2C{{Lat2}}&amp;layer=mapnik&amp;marker={{Lat}}%2C-{{Long}}" 
+style="border: 1px solid black"></iframe>
+<br/><small>
+<a href="https://www.openstreetmap.org/?mlat={{Lat}}&amp;mlon={{Long}}#map=16/{{Lat}}/{{Long}}">
+View Larger Map</a></small>
+</div>
+
+  <div class="column">
+  <img width="425px" height="350px" src="{{source}}" />
+  </div>
+</div>
+
+ <div class="column" >
+  <b><pre class="tab"> Label:</b>{{Label}} </pre> <br>
+	<p><b>FOUND AT:</b> {{address}}  </p>
+  </div>
+
+    </main>
+
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span class="text-muted">
+            <Marquee>
+                Built by
+                <a href="https://www.linkedin.com/in/kumar-shubham-iitd/" target="_blank">@Kumar Shubham</a> 
+			</Marquee>
+            </span>
+        </div>
+    </footer>
+
+</body>
+
+</html>
