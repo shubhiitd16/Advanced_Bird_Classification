@@ -1,0 +1,535 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Bird Detection with Open CV"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Source:https://www.pyimagesearch.com/2017/09/11/object-detection-with-deep-learning-and-opencv/"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 204,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# import the necessary packages\n",
+    "import numpy as np\n",
+    "import argparse\n",
+    "import cv2\n",
+    "import glob\n",
+    "import os\n",
+    "import shutil"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 205,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "CLASSES = [\"background\", \"aeroplane\", \"bicycle\", \"bird\", \"boat\",\n",
+    "\t\"bottle\", \"bus\", \"car\", \"cat\", \"chair\", \"cow\", \"diningtable\",\n",
+    "\t\"dog\", \"horse\", \"motorbike\", \"person\", \"pottedplant\", \"sheep\",\n",
+    "\t\"sofa\", \"train\", \"tvmonitor\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 206,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 207,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[INFO] loading model...\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"[INFO] loading model...\")\n",
+    "net = cv2.dnn.readNetFromCaffe(\"MobileNetSSD_deploy.prototxt.txt\" , \"MobileNetSSD_deploy.caffemodel\" )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 208,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ImageIndices=[int(x.split('/')[1].split('.')[0][5:]) for x in glob.glob(\"images/*.jpg\")]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 209,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Images = [cv2.imread('images/Image{}.jpg'.format(index)) for index in ImageIndices]\n",
+    "Sizes=[image.shape[:2] for image in Images]\n",
+    "images=[cv2.resize(image,(300,300)) for image in Images]\n",
+    "images=np.stack(images,axis=0)\n",
+    "blob=cv2.dnn.blobFromImages(images, 0.007843, (300, 300), 127.5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 210,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[280,\n",
+       " 255,\n",
+       " 241,\n",
+       " 66,\n",
+       " 291,\n",
+       " 130,\n",
+       " 180,\n",
+       " 16,\n",
+       " 155,\n",
+       " 141,\n",
+       " 191,\n",
+       " 230,\n",
+       " 216,\n",
+       " 205,\n",
+       " 30,\n",
+       " 166,\n",
+       " 80,\n",
+       " 116,\n",
+       " 55,\n",
+       " 41,\n",
+       " 5,\n",
+       " 266,\n",
+       " 91,\n",
+       " 105]"
+      ]
+     },
+     "execution_count": 210,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ImageIndices"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 211,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(24, 3, 300, 300)"
+      ]
+     },
+     "execution_count": 211,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "blob.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 212,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[INFO] computing object detections...\n"
+     ]
+    }
+   ],
+   "source": [
+    "# pass the blob through the network and obtain the detections and\n",
+    "# predictions\n",
+    "print(\"[INFO] computing object detections...\")\n",
+    "net.setInput(blob)\n",
+    "detections = net.forward()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 213,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(1, 1, 22, 7)"
+      ]
+     },
+     "execution_count": 213,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "detections.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 214,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# loop over the detections\n",
+    "Cropped=[]\n",
+    "TrueIndices=[]\n",
+    "Confidences=[]\n",
+    "pos={}\n",
+    "for i in np.arange(0, detections.shape[2]):\n",
+    "    # extract the confidence (i.e., probability) associated with the\n",
+    "    # prediction\n",
+    "    confidence = detections[0, 0, i, 2]\n",
+    "\n",
+    "    # filter out weak detections by ensuring the `confidence` is\n",
+    "    # greater than the minimum confidence\n",
+    "    idx = int(detections[0, 0, i, 1])\n",
+    "\n",
+    "    if confidence > 0.5 and idx==3:\n",
+    "        # extract the index of the class label from the `detections`,\n",
+    "        # then compute the (x, y)-coordinates of the bounding box for\n",
+    "        # the object\n",
+    "        ImageIndex=int(detections[0,0,i,0])\n",
+    "        w=Sizes[ImageIndex][1]    \n",
+    "        h=Sizes[ImageIndex][0] \n",
+    "        TrueIndices.append(ImageIndices[ImageIndex])\n",
+    "        Confidences.append(confidence)\n",
+    "        box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])\n",
+    "   \n",
+    "        (startX, startY, endX, endY) = box.astype(\"int\")\n",
+    "        crop_img = Images[ImageIndex][startY:endY, startX:endX,:]\n",
+    "        Cropped.append(crop_img)\n",
+    "        #cv2.imwrite(\"Cropped/crop{}.jpeg\".format(i),crop_img)\n",
+    "        # display the prediction\n",
+    "        label = \"bird{}: {:.2f}%\".format(TrueIndex,confidence * 100)\n",
+    "  \n",
+    "        cv2.rectangle(Images[ImageIndex], (startX, startY), (endX, endY),\n",
+    "            COLORS[idx], 2)\n",
+    "        y = startY - 15 if startY - 15 > 15 else startY + 15\n",
+    "        pos[ImageIndices[ImageIndex]]=(startX, y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 185,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "shutil.rmtree(\"Detected\")\n",
+    "os.makedirs(\"Detected\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 186,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for index,image in enumerate(Images):\n",
+    "    cv2.imwrite(\"Detected/Output{}.jpeg\".format(ImageIndices[index]), image)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 187,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Cropped=[cv2.resize(image,(224,224)) for image in Cropped]\n",
+    "Cropped=np.stack(Cropped,axis=0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 188,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[(280, 0.869322),\n",
+       " (241, 0.835631),\n",
+       " (66, 0.9899053),\n",
+       " (180, 0.9997365),\n",
+       " (16, 0.99169946),\n",
+       " (155, 0.9971866),\n",
+       " (155, 0.9950039),\n",
+       " (141, 0.9975713),\n",
+       " (191, 0.9947437),\n",
+       " (216, 0.9889042),\n",
+       " (30, 0.82019246),\n",
+       " (30, 0.6001206),\n",
+       " (166, 0.99954516),\n",
+       " (80, 0.9955609),\n",
+       " (116, 0.9283756),\n",
+       " (55, 0.9995937),\n",
+       " (41, 0.9990128),\n",
+       " (5, 0.97148466),\n",
+       " (105, 0.97533166)]"
+      ]
+     },
+     "execution_count": 188,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "[(x,y) for x,y in zip(TrueIndices,Confidences)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 189,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(19, 224, 224, 3)"
+      ]
+     },
+     "execution_count": 189,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Cropped.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 190,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img\n",
+    "from tqdm import tqdm_notebook, tnrange\n",
+    "import numpy as np\n",
+    "import matplotlib\n",
+    "#this comment is used for letting matplotlib showing picture in AWS non-gui enviroment\n",
+    "#if you used the gui-virtual machine environment, delete that one.\n",
+    "matplotlib.use('Agg')\n",
+    "import numpy as np\n",
+    "import cv2\n",
+    "#school's mac is hard to install cv2, you may think abput using PIL\n",
+    "import matplotlib.pyplot as plt\n",
+    "import pickle\n",
+    "import h5py\n",
+    "import glob\n",
+    "import time\n",
+    "from random import shuffle\n",
+    "from collections import Counter\n",
+    "\n",
+    "from keras.applications.resnet50 import ResNet50\n",
+    "from keras.preprocessing import image\n",
+    "from keras.applications.resnet50 import preprocess_input, decode_predictions\n",
+    "import numpy as np\n",
+    "\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "\n",
+    "import keras\n",
+    "from keras.preprocessing.image import ImageDataGenerator\n",
+    "from keras.callbacks import LearningRateScheduler, ModelCheckpoint\n",
+    "from keras.models import Sequential\n",
+    "from keras.layers import Dense, Dropout, Activation, Flatten\n",
+    "from keras.layers import Conv2D, MaxPooling2D\n",
+    "from keras.optimizers import SGD, Adam\n",
+    "from keras.applications.vgg16 import VGG16\n",
+    "from keras.applications.vgg19 import VGG19\n",
+    "from keras.applications.resnet50 import ResNet50\n",
+    "from keras.models import model_from_json\n",
+    "from keras.models import load_model\n",
+    "from keras.applications.resnet50 import preprocess_input, decode_predictions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 191,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=load_model(\"Resnet50ImageNet.h5\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 192,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Train=preprocess_input(Cropped)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 193,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Prediction=model.predict(Train)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 194,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "preds={TrueIndices[i]:x[0][1] for i,x in enumerate(decode_predictions(Prediction, top=1))}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 195,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{5: u'macaw',\n",
+       " 16: u'partridge',\n",
+       " 30: u'book_jacket',\n",
+       " 41: u'jay',\n",
+       " 55: u'indigo_bunting',\n",
+       " 66: u'hummingbird',\n",
+       " 80: u'macaw',\n",
+       " 105: u'red-breasted_merganser',\n",
+       " 116: u'agama',\n",
+       " 141: u'junco',\n",
+       " 155: u'black_stork',\n",
+       " 166: u'black_stork',\n",
+       " 180: u'oystercatcher',\n",
+       " 191: u'oystercatcher',\n",
+       " 216: u'partridge',\n",
+       " 241: u'magpie',\n",
+       " 280: u'jay'}"
+      ]
+     },
+     "execution_count": 195,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "preds"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 215,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "280 (0, 84) (480, 640, 3)\n",
+      "241 (331, 44) (464, 848, 3)\n",
+      "66 (269, 43) (464, 848, 3)\n",
+      "180 (243, 32) (464, 848, 3)\n",
+      "16 (560, 97) (464, 848, 3)\n",
+      "155 (372, 59) (464, 848, 3)\n",
+      "141 (67, 81) (464, 848, 3)\n",
+      "191 (417, 28) (464, 848, 3)\n",
+      "216 (81, 225) (480, 640, 3)\n",
+      "30 (419, 188) (464, 848, 3)\n",
+      "166 (305, 90) (464, 848, 3)\n",
+      "80 (365, 52) (464, 848, 3)\n",
+      "116 (48, 23) (464, 848, 3)\n",
+      "55 (160, 61) (464, 848, 3)\n",
+      "41 (241, 55) (464, 848, 3)\n",
+      "5 (608, 48) (464, 848, 3)\n",
+      "105 (200, 72) (464, 848, 3)\n"
+     ]
+    }
+   ],
+   "source": [
+    "shutil.rmtree(\"Detected\")\n",
+    "os.makedirs(\"Detected\")\n",
+    "for index,image in enumerate(Images):\n",
+    "    if ImageIndices[index] in preds:\n",
+    "        print ImageIndices[index],pos[ImageIndices[index]],image.shape\n",
+    "        cv2.putText(image, preds[ImageIndices[index]],pos[ImageIndices[index]] , cv2.FONT_HERSHEY_SIMPLEX, 2, COLORS[idx], 2)\n",
+    "    cv2.imwrite(\"Detected/Output{}.jpeg\".format(ImageIndices[index]), image)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 217,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(19, 1000)"
+      ]
+     },
+     "execution_count": 217,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Prediction.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.15"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
