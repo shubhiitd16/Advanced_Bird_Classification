@@ -7,3 +7,5 @@ In day to day life we see or hear sound of various birds around us but because o
 
 We developed an app which can find the species of bird using their sound/images and encourage one to read more about it. 
 App is a simple easy to use interface which uses machine learning algorithm deployed on remote server to detect and classify bird species using their image and sound.
+
+A detailed description of the project can be found on the blog: https://advbirdclassificationcop315.home.blog/
